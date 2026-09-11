@@ -73,20 +73,21 @@ class _HomeScreenState extends State<HomeScreen>
     _statusSub = _vpn.statusStream.listen((status) {
       if (!mounted) return;
       setState(() {
-        if (status.state == V2RayStatus.connected) {
+        final st = status.state;
+        if (st == 'connected') {
           _connected = true;
           _connecting = false;
           _statusText = 'متصل';
           _connectTime ??= DateTime.now();
           _startDurationTimer();
-        } else if (status.state == V2RayStatus.disconnected) {
+        } else if (st == 'disconnected') {
           _connected = false;
           _connecting = false;
           _statusText = 'قطع';
           _downSpeed = null;
           _upSpeed = null;
           _stopDurationTimer();
-        } else if (status.state == V2RayStatus.connecting) {
+        } else if (st == 'connecting') {
           _connecting = true;
           _statusText = 'در حال اتصال...';
         }
@@ -296,7 +297,8 @@ class _HomeScreenState extends State<HomeScreen>
               Text(
                 _statusText,
                 style: TextStyle(
-                  color: _connected ? AppColors.success : AppColors.textSecondary,
+                  color:
+                      _connected ? AppColors.success : AppColors.textSecondary,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
@@ -382,8 +384,10 @@ class _HomeScreenState extends State<HomeScreen>
                   MaterialPageRoute(builder: (_) => const AdminScreen()),
                 );
               },
-              icon: const Icon(Icons.admin_panel_settings,
-                  color: AppColors.neon),
+              icon: const Icon(
+                Icons.admin_panel_settings,
+                color: AppColors.neon,
+              ),
             ),
           IconButton(
             onPressed: _openConfigs,
@@ -435,7 +439,7 @@ class _HomeScreenState extends State<HomeScreen>
       padding: const EdgeInsets.symmetric(horizontal: 24),
       child: Row(
         children: [
-          Expanded(
+          const Expanded(
             child: InfoCard(
               icon: Icons.location_on_outlined,
               label: 'موقعیت شما',
