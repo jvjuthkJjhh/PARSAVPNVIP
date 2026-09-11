@@ -1,22 +1,7 @@
 import 'dart:io';
-import 'package:flutter_v2ray_client/flutter_v2ray.dart';
 import '../models/config_model.dart';
 
 class PingService {
-  static final V2ray _v2ray = V2ray(onStatusChanged: (_) {});
-  static bool _init = false;
-
-  static Future<void> _ensureInit() async {
-    if (_init) return;
-    try {
-      await _v2ray.initialize(
-        notificationIconResourceType: "mipmap",
-        notificationIconResourceName: "ic_launcher",
-      );
-      _init = true;
-    } catch (_) {}
-  }
-
   static Future<int?> tcpPing(String host, int port) async {
     if (host.isEmpty || port == 0) return null;
     final sw = Stopwatch()..start();
@@ -35,17 +20,7 @@ class PingService {
   }
 
   static Future<int?> realPing(V2RayConfig cfg) async {
-    try {
-      await _ensureInit();
-      V2RayURL parser = V2ray.parseFromURL(cfg.raw);
-      final config = parser.getFullConfiguration();
-      final delay = await _v2ray
-          .getServerDelay(config: config)
-          .timeout(const Duration(seconds: 5));
-      return (delay != null && delay > 0) ? delay : null;
-    } catch (_) {
-      return null;
-    }
+    return await tcpPing(cfg.host, cfg.port);
   }
 
   static Future<List<V2RayConfig>> pingAll(
@@ -64,6 +39,7 @@ class PingService {
       );
       await Future.wait(chunk.map((c) async {
         c.tcpPing = await tcpPing(c.host, c.port);
+        c.realPing = c.tcpPing;
       }));
       alive.addAll(chunk.where((c) => c.tcpPing != null));
       onProgress?.call(i + chunk.length, configs.length);
